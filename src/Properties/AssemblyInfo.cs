@@ -1,12 +1,14 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Resources;
 
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("DragWheel")]
-[assembly: AssemblyDescription("Left-drag to synthesize mousewheel movement")]
+[assembly: AssemblyDescription("Synthesize mousewheel movement by dragging")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("DragWheel")]
@@ -18,6 +20,7 @@ using System.Runtime.InteropServices;
 // to COM components.  If you need to access a type in this assembly from
 // COM, set the ComVisible attribute to true on that type.
 [assembly: ComVisible(false)]
+[assembly: CLSCompliant(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid("68c3a8ad-3fa0-4cf9-a942-f7056e61edc1")]
@@ -32,5 +35,8 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.2021.325")]
-[assembly: AssemblyFileVersion("1.0.2021.325")]
+[assembly: AssemblyVersion("1.1.2021.418")]
+[assembly: AssemblyFileVersion("1.1.2021.418")]
+
+// Don't probe satellites for en-US resources.
+[assembly: NeutralResourcesLanguageAttribute("en-US")]

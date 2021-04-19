@@ -55,14 +55,14 @@ namespace DragWheel
             int distanceThreshold = Config.MouseResolution / 50; // @1200dpi => 24 mickies (~0.02in)
 
             if (_yPos >= (_yLo + distanceThreshold))
-                return CalcWheelDeltaAndUpdateBaseline(_yPos - _yLo);
+                return CalcWheelnotchDeltaAndUpdateBaseline(_yPos - _yLo);
 
             if (_yPos <= (_yHi - distanceThreshold))
-                return CalcWheelDeltaAndUpdateBaseline(_yPos - _yHi);
+                return CalcWheelnotchDeltaAndUpdateBaseline(_yPos - _yHi);
 
             return 0;
 
-            int CalcWheelDeltaAndUpdateBaseline( int draggedDistance )
+            int CalcWheelnotchDeltaAndUpdateBaseline( int draggedDistance )
             {
                 int quantizedDistance = (int)(draggedDistance / distanceThreshold);
 
@@ -72,7 +72,7 @@ namespace DragWheel
                 if (quantizedDistance > 0)
                     _yLo += (int)(quantizedDistance * distanceThreshold);
 
-                return quantizedDistance * 120;//WHEEL_DELTA, one standardized "notch" of mousewheel rotation
+                return quantizedDistance;
             }
         }
     }
@@ -86,8 +86,8 @@ namespace DragWheel
             MouseDragTracker.ResetDragDeltas();
 
             int dy = Config.MouseResolution / 50 + 1;
-            Debug.Assert(+120 == MouseDragTracker.TrackDragDeltas(0, +dy));
-            Debug.Assert(+120 == MouseDragTracker.TrackDragDeltas(0, +dy));
+            Debug.Assert(+1 == MouseDragTracker.TrackDragDeltas(0, +dy));
+            Debug.Assert(+1 == MouseDragTracker.TrackDragDeltas(0, +dy));
         }
 
         //----------------------------------------
@@ -97,8 +97,8 @@ namespace DragWheel
             MouseTracker_Up();
 
             int dy = Config.MouseResolution / 50 + 1;
-            Debug.Assert(-120 == MouseDragTracker.TrackDragDeltas(0, -dy));
-            Debug.Assert(-120 == MouseDragTracker.TrackDragDeltas(0, -dy));
+            Debug.Assert(-1 == MouseDragTracker.TrackDragDeltas(0, -dy));
+            Debug.Assert(-1 == MouseDragTracker.TrackDragDeltas(0, -dy));
         }
     }
 }

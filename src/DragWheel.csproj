@@ -41,7 +41,9 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Sounds.cs" />
     <Compile Include="Config.cs" />
+    <Compile Include="ThrottleAbsolutePosTracker.cs" />
     <Compile Include="RawInputJoystickHandler.cs" />
     <Compile Include="MouseDragTracker.cs" />
     <Compile Include="RawInputMouseHandler.cs" />
@@ -55,7 +57,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <WCFMetadata Include="Connected Services\" />
+    <EmbeddedResource Include="Sounds\throttleDetent.wav" />
+    <EmbeddedResource Include="Sounds\throttleExtent.wav" />
+    <EmbeddedResource Include="Sounds.resx" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
