@@ -108,9 +108,10 @@ namespace DragWheel
 
                         if (RawInputMouseHandler.DragActivated || RawInputJoystickHandler.DragActivated)
                         {
-                            int wheelDelta = MouseDragTracker.TrackDragDeltas(dx, dy);
-                            if (wheelDelta != 0)
+                            int wheelnotchDelta = MouseDragTracker.TrackDragDeltas(dx, dy);
+                            if (wheelnotchDelta != 0)
                             {
+                                int wheelDelta = wheelnotchDelta * 120;//WHEEL_DELTA, one standardized "notch" of mousewheel rotation
                                 Console.WriteLine("Sending deltaMouseWheel={0}", wheelDelta);
                                 Win32.SendInput.MoveMouseWheel(wheelDelta);
                             }
@@ -141,6 +142,8 @@ namespace DragWheel
         //----------------------------------------
         static void TestImpl( )
         {
+            //Tests.PlaySound();
+
             Tests.Config_NullOrEmpty();
             Tests.MouseTracker_Up();
             Tests.MouseTracker_Down();

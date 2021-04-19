@@ -36,9 +36,10 @@ namespace Win32
         //----------------------------------------
         public delegate void MouseButtonHandler( int buttonId, bool isPressed );
         public delegate void MouseMoveHandler( int deltaX, int deltaY );
+        public delegate void MouseWheelHandler( int deltaW );
 
         //----------------------------------------
-        public static bool DecodeMouseEvent( IntPtr hRawInput, MouseButtonHandler onMouseButton, MouseMoveHandler onMouseMove )
+        public static bool DecodeMouseEvent( IntPtr hRawInput, MouseButtonHandler onMouseButton, MouseMoveHandler onMouseMove, MouseWheelHandler onMouseWheel )
         {
             // Crack raw-input to retrieve device handle and data-buffer; ensure expected HID type.
             _Interop_User32.RawInputHeaderAndRawMouse riHeaderAndMouse;
@@ -51,7 +52,6 @@ namespace Win32
             // Unmarshal the raw data for the mouse event.
             ushort mouseFlags = riHeaderAndMouse.mouse.usFlags;
             ushort mouseButtonFlags = riHeaderAndMouse.mouse.usButtonFlags;
-            //ushort mouseButtonData = riHeaderAndMouse.mouse.usButtonData;//wheelDelta
 
             // Process mouse button state-changes (for 5 standardized buttons).  NOTE these are physical hardware
             // button positions -- the SM_SWAPBUTTON user preference must be honored later, if desired.
@@ -88,6 +88,13 @@ namespace Win32
             if ((mouseFlags & _Interop_User32.MOUSE_MOVE_ABSOLUTE) != _Interop_User32.MOUSE_MOVE_ABSOLUTE)
                 if (mouseLastX != 0 || mouseLastY != 0)
                     onMouseMove(mouseLastX, mouseLastY);
+
+            // Process wheel-movement (nb: this includes our own SendInput commands).
+            if (0 != (mouseButtonFlags & _Interop_User32.RI_MOUSE_WHEEL))
+            {
+                int wheelDelta = riHeaderAndMouse.mouse.usButtonData;
+                onMouseWheel(wheelDelta);
+            }
 
             return true;
         }
@@ -319,6 +326,7 @@ namespace Win32
             internal const ushort RI_MOUSE_BUTTON_4_UP = 0x0080;
             internal const ushort RI_MOUSE_BUTTON_5_DOWN = 0x0100;
             internal const ushort RI_MOUSE_BUTTON_5_UP = 0x0200;
+            internal const ushort RI_MOUSE_WHEEL = 0x0400;
 
             [DllImport("User32.dll", SetLastError = true)]
             internal static extern int GetSystemMetrics( int nIndex );
@@ -382,8 +390,8 @@ namespace Win32
                 internal ushort usFlags;
                 private ushort _reserved_padding;
                 internal ushort usButtonFlags;
-                internal ushort usButtonData;
-                private uint ulRawButtons;//unused, always zero for most hardware
+                internal short usButtonData;//nb: actual wheelDelta value is signed, not unsigned
+                private uint ulRawButtons;//unused, will be zero for most hardware
                 internal int lLastX;
                 internal int lLastY;
                 internal uint ulExtraInformation;
