@@ -5,7 +5,7 @@ namespace DragWheel
     internal class RawInputMouseHandler
     {
         int? _configuredMouseButton;
-        byte? _xbutton1Scancode, _xbutton2Scancode;
+        byte? _wheelbuttonScancode, _xbutton1Scancode, _xbutton2Scancode;
 
         bool[] _mouseButtons;
         int _dx, _dy;
@@ -26,6 +26,7 @@ namespace DragWheel
             DragActivated = false;
 
             _configuredMouseButton = Config.MouseButton;
+            _wheelbuttonScancode = Config.ScancodeForMouseWheelButton;
             _xbutton1Scancode = Config.ScancodeForMouseXButton1;
             _xbutton2Scancode = Config.ScancodeForMouseXButton2;
 
@@ -83,6 +84,11 @@ namespace DragWheel
                 ThrottleAbsolutePosTracker.TrackMiddleClick(isPressed, Environment.TickCount);
 
             // Bonus feature: map mouse x-buttons to keyboard scancodes.
+            if (_wheelbuttonScancode.HasValue && buttonId == 2)
+            {
+                Console.WriteLine("WB key [{0:X}]: {1}", _wheelbuttonScancode.Value, isPressed);
+                Win32.SendInput.SendKeystroke(_wheelbuttonScancode.Value, isPressed);
+            }
             if (_xbutton1Scancode.HasValue && buttonId == 3)
             {
                 Console.WriteLine("XB1 key [{0:X}]: {1}", _xbutton1Scancode.Value, isPressed);
