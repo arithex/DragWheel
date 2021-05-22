@@ -139,6 +139,24 @@ namespace DragWheel
         }
 
         //----------------------------------------
+        public static byte? ScancodeForMouseWheelButton
+        {
+            get
+            {
+                string configValue = ConfigurationManager.AppSettings["ScancodeForMouseWheelButton"];
+
+                if (String.IsNullOrEmpty(configValue))
+                    return null;
+
+                uint value = _ParseUInt32(configValue);
+                if (value > 255)
+                    throw new ConfigurationErrorsException("Scancode must be in range [0x00-0xFF]");
+
+                return (byte)value;
+            }
+        }
+
+        //----------------------------------------
         public static byte? ScancodeForMouseXButton1
         {
             get

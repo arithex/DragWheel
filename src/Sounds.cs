@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Media;
-using System.Resources;
 
 namespace DragWheel
 {
@@ -15,33 +14,33 @@ namespace DragWheel
 
         static Sounds( )
         {
-            ResourceManager resmgr = new ResourceManager(typeof(Sounds));
+            ResourceLoader resloader = new ResourceLoader();
 
             string soundIdleStop = Config.IdleStopSound;
             if (!String.IsNullOrEmpty(soundIdleStop))
             {
-                Stream wavStream = resmgr.GetStream(soundIdleStop);
+                Stream wavStream = resloader.TryLoadResourceBinary(soundIdleStop);
                  s_playerIdleStop = new SoundPlayer(wavStream);
             }
 
             string soundBurnerDetentUp = Config.BurnerDetentUpSound;
             if (!String.IsNullOrEmpty(soundBurnerDetentUp))
             {
-                Stream wavStream = resmgr.GetStream(soundBurnerDetentUp);
+                Stream wavStream = resloader.TryLoadResourceBinary(soundBurnerDetentUp);
                 s_playerBurnerDetentUp = new SoundPlayer(wavStream);
             }
 
             string soundBurnerDetentDown = Config.BurnerDetentDownSound;
             if (!String.IsNullOrEmpty(soundBurnerDetentDown))
             {
-                Stream wavStream = resmgr.GetStream(soundBurnerDetentDown);
+                Stream wavStream = resloader.TryLoadResourceBinary(soundBurnerDetentDown);
                 s_playerBurnerDetentDown = new SoundPlayer(wavStream);
             }
 
             string soundMaxBurner = Config.MaxBurnerSound;
             if (!String.IsNullOrEmpty(soundMaxBurner))
             {
-                Stream wavStream = resmgr.GetStream(soundMaxBurner);
+                Stream wavStream = resloader.TryLoadResourceBinary(soundMaxBurner);
                 s_playerMaxBurner = new SoundPlayer(wavStream);
             }
         }

@@ -13,6 +13,14 @@ This is still just a crude prototype -- but I'd like to get feedback and hear id
 
 ## Change Log ##
 
+#### v1.1.2021.522:
+
+- Allow sound effects to be overridden with custom wav files.
+- Also allow mouse wheelbutton to mapped to a keyboard scancode -- 
+  - only suitable for press-and-hold keys (because a short-tap will always set throttle to 50% and reset fov).
+  - but works great for the `SimHotasShift` callback, to take advantage of secondary stick buttons without sacrificing one of them.
+  - eg: `<add key="ScancodeForMouseWheelButton" value="0x39"/><!-- [spacebar] -->`
+
 #### v1.1:
 
 - Implemented rudimentary tracking of throttle-lever position, and audible feedback when your throttle hits the minimum/maximum extent (and push-through afterburner detent).
@@ -96,4 +104,4 @@ That should be more stable, supportable, and allow the mousewheel to return to i
 Other changes in progress:
 
 - use BMS shared memory interface to only hook the mouse while in 3D pit
-- optional overlay to display throttle position, rpm, ftit, brake
+- optional overlay to display throttle position, rpm, ftit, brake, etc

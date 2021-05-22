@@ -41,6 +41,7 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ResourceLoader.cs" />
     <Compile Include="Sounds.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="ThrottleAbsolutePosTracker.cs" />
@@ -59,7 +60,6 @@
   <ItemGroup>
     <EmbeddedResource Include="Sounds\throttleDetent.wav" />
     <EmbeddedResource Include="Sounds\throttleExtent.wav" />
-    <EmbeddedResource Include="Sounds.resx" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
