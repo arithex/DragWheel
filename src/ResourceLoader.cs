@@ -1,3 +1,6 @@
+/*
+ * Convenience wrapper for loading binary resources via Assembly.GetManifestResourceStream().
+ */
 using System;
 using System.IO;
 using System.Reflection;

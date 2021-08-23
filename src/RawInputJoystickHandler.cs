@@ -1,12 +1,12 @@
-﻿using System;
+﻿/*
+ * Application logic for responding to joystick button-presses.
+ */
+using System;
 
 namespace DragWheel
 {
     internal class RawInputJoystickHandler
     {
-        bool[] _stickButtons;
-        int _configuredStickButton;
-
         Win32.RawInput.JoystickButtonHandler _onStickButton;
 
         //--------------------------------------------------------------
@@ -19,9 +19,6 @@ namespace DragWheel
         public RawInputJoystickHandler( IntPtr hWnd )
         {
             DragActivated = false;
-
-            _stickButtons = new bool[32];
-            _configuredStickButton = Config.JoystickButton.Value;
 
             _onStickButton = OnStickButton;
 
@@ -44,16 +41,17 @@ namespace DragWheel
         // Callbacks
 
         //----------------------------------------
-        void OnStickButton( int buttonId, bool isPressed )
+        void OnStickButton( ushort vendorId, ushort productId, ushort buttonId, bool isPressed )
         {
-            Console.WriteLine("Stick button {0} changed to {1}", buttonId, isPressed);
+            Console.WriteLine("Device pidvid {1}{0} button {2} changed to {3}", vendorId.ToString("X4"), productId.ToString("X4"), buttonId, isPressed);
 
-            // Update all button states.
-            if (0 <= buttonId && buttonId <= 31)
-                _stickButtons[buttonId] = isPressed;
+            if (Config.JoystickButton == null)
+                return;
+
+            string pidvidId = String.Format(@"{1:X4},{0:X4},{2}", vendorId, productId, buttonId);
 
             // Update master drag-state.
-            if (buttonId == _configuredStickButton)
+            if (0 == String.CompareOrdinal(pidvidId, Config.JoystickButton))
                 DragActivated = isPressed;
 
             return;

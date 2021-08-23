@@ -1,4 +1,8 @@
-﻿using System;
+﻿/*
+ * Lightweight interop wrapper for a message-only HWND .. useful, eg for receiving WM_USER or 
+ * WM_INPUT messages in non-GUI apps.
+ */
+using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 

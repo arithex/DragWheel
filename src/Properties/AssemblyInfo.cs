@@ -35,8 +35,8 @@ using System.Resources;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.1.2021.522")]
-[assembly: AssemblyFileVersion("1.1.2021.522")]
+[assembly: AssemblyVersion("1.2.2021.821")]
+[assembly: AssemblyFileVersion("1.2.2021.821")]
 
 // Don't probe satellites for en-US resources.
 [assembly: NeutralResourcesLanguageAttribute("en-US")]

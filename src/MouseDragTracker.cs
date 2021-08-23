@@ -1,5 +1,4 @@
-﻿
-/*
+﻿/*
  * While left button is down (or optional joystick button held) track the net drag distance, and 
  * high/low water marks from start of the drag.  When drag distance exceeds the threshold in any 
  * direction (ie. distance above low-water mark, or below high-water mark) generate a mousewheel 
@@ -52,7 +51,7 @@ namespace DragWheel
             // The total "throw" of the throttle in BMS is 125 mousewheel-clicks.  Mapping that to 2.50 inches of 
             // mouse travel, is 50 wheel-clicks/inch of travel.  For a typical 1200dpi mouse, that works out 
             // to 24 mickies per wheel-click.
-            int distanceThreshold = Config.MouseResolution / 50; // @1200dpi => 24 mickies (~0.02in)
+            int distanceThreshold = Config.MouseResolution.Value / 50; // @1200dpi => 24 mickies (~0.02in)
 
             if (_yPos >= (_yLo + distanceThreshold))
                 return CalcWheelnotchDeltaAndUpdateBaseline(_yPos - _yLo);
@@ -85,7 +84,7 @@ namespace DragWheel
         {
             MouseDragTracker.ResetDragDeltas();
 
-            int dy = Config.MouseResolution / 50 + 1;
+            int dy = Config.MouseResolution.Value / 50 + 1;
             Debug.Assert(+1 == MouseDragTracker.TrackDragDeltas(0, +dy));
             Debug.Assert(+1 == MouseDragTracker.TrackDragDeltas(0, +dy));
         }
@@ -96,7 +95,7 @@ namespace DragWheel
             MouseDragTracker.ResetDragDeltas();
             MouseTracker_Up();
 
-            int dy = Config.MouseResolution / 50 + 1;
+            int dy = Config.MouseResolution.Value / 50 + 1;
             Debug.Assert(-1 == MouseDragTracker.TrackDragDeltas(0, -dy));
             Debug.Assert(-1 == MouseDragTracker.TrackDragDeltas(0, -dy));
         }

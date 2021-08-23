@@ -7,7 +7,7 @@
  * mousewheel.
  * 
  * Adjust sensitivity (mouse DPI) or change the button used, in DragWheel.exe.config
- * 
+ * (Config also supports defining an optional joystick button to use, as the activation for dragging.)
  */
 using System;
 
@@ -46,9 +46,6 @@ namespace DragWheel
         //----------------------------------------
         static void MainImpl( string[] args )
         {
-            if (Config.MouseButton == null && Config.JoystickButton == null)
-                throw new ApplicationException("Nothing to do -- must configure one of MouseButton or JoystickButton");
-
             // Create hidden HWNDs to subscribe to Raw Input (WM_INPUT) events. We create two
             // separate windows, one for mouse and another for joystick.  It is far easier 
             // and more efficient than de-multiplexing the events later.
@@ -57,11 +54,8 @@ namespace DragWheel
             s_msgWndForMouse = Win32.MessageWindow.CreateMessageWindow();
             s_mouseInputHandler = new RawInputMouseHandler(s_msgWndForMouse);
 
-            if (Config.JoystickButton != null)
-            {
-                s_msgWndForStick = Win32.MessageWindow.CreateMessageWindow();
-                s_stickInputHandler = new RawInputJoystickHandler(s_msgWndForStick);
-            }
+            s_msgWndForStick = Win32.MessageWindow.CreateMessageWindow();
+            s_stickInputHandler = new RawInputJoystickHandler(s_msgWndForStick);
 
             // Pump messages.
             Win32.MessageWindow.PumpMessages();
@@ -112,6 +106,7 @@ namespace DragWheel
                             if (wheelnotchDelta != 0)
                             {
                                 int wheelDelta = wheelnotchDelta * 120;//WHEEL_DELTA, one standardized "notch" of mousewheel rotation
+
                                 Console.WriteLine("Sending deltaMouseWheel={0}", wheelDelta);
                                 Win32.SendInput.MoveMouseWheel(wheelDelta);
                             }
@@ -145,6 +140,7 @@ namespace DragWheel
             //Tests.PlaySound();
 
             Tests.Config_NullOrEmpty();
+            Tests.Nullable_Casting();
             Tests.MouseTracker_Up();
             Tests.MouseTracker_Down();
             return;

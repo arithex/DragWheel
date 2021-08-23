@@ -1,4 +1,8 @@
-﻿using System;
+﻿/*
+ * Interop wrapper for programmatically generating keystroke, and manipulating mousewheel.
+ * Not done: mouse-move, mouse buttons.
+ */
+using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 

@@ -1,13 +1,12 @@
-﻿using System;
+﻿/*
+ * Application logic for responding to mouse-move, mouse-wheel, and mouse button clicks.
+ */
+using System;
 
 namespace DragWheel
 {
     internal class RawInputMouseHandler
     {
-        int? _configuredMouseButton;
-        byte? _wheelbuttonScancode, _xbutton1Scancode, _xbutton2Scancode;
-
-        bool[] _mouseButtons;
         int _dx, _dy;
 
         Win32.RawInput.MouseButtonHandler _onMouseButton;
@@ -25,12 +24,6 @@ namespace DragWheel
         {
             DragActivated = false;
 
-            _configuredMouseButton = Config.MouseButton;
-            _wheelbuttonScancode = Config.ScancodeForMouseWheelButton;
-            _xbutton1Scancode = Config.ScancodeForMouseXButton1;
-            _xbutton2Scancode = Config.ScancodeForMouseXButton2;
-
-            _mouseButtons = new bool[5];
             _dx = _dy = 0;
 
             _onMouseButton = OnMouseButton;
@@ -62,7 +55,7 @@ namespace DragWheel
         //----------------------------------------
         void OnMouseButton( int buttonId, bool isPressed )
         {
-            // Honor SM_SWAPBUTTON setting.
+            // Honor SM_SWAPBUTTON setting (tested: BMS 4.35 also honors this).
             if (Win32.RawInput.ButtonsSwapped)
             {
                 if (buttonId == 0) buttonId = 1;
@@ -71,12 +64,8 @@ namespace DragWheel
 
             Console.WriteLine("Mouse button {0} changed to {1}", buttonId, isPressed);
 
-            // Update array of button states.
-            if (0 <= buttonId && buttonId <= 4)
-                _mouseButtons[buttonId] = isPressed;
-
             // Update master drag state.
-            if (buttonId == _configuredMouseButton)
+            if (Config.MouseButton.HasValue && (buttonId == Config.MouseButton.Value))
                 DragActivated = isPressed;
 
             // On middle-click: throttle is reset to 50% 
@@ -84,20 +73,20 @@ namespace DragWheel
                 ThrottleAbsolutePosTracker.TrackMiddleClick(isPressed, Environment.TickCount);
 
             // Bonus feature: map mouse x-buttons to keyboard scancodes.
-            if (_wheelbuttonScancode.HasValue && buttonId == 2)
+            if (Config.ScancodeForMouseWheelButton.HasValue && buttonId == 2)
             {
-                Console.WriteLine("WB key [{0:X}]: {1}", _wheelbuttonScancode.Value, isPressed);
-                Win32.SendInput.SendKeystroke(_wheelbuttonScancode.Value, isPressed);
+                Console.WriteLine("WB key [{0:X}]: {1}", Config.ScancodeForMouseWheelButton.Value, isPressed);
+                Win32.SendInput.SendKeystroke(Config.ScancodeForMouseWheelButton.Value, isPressed);
             }
-            if (_xbutton1Scancode.HasValue && buttonId == 3)
+            if (Config.ScancodeForMouseXButton1.HasValue && buttonId == 3)
             {
-                Console.WriteLine("XB1 key [{0:X}]: {1}", _xbutton1Scancode.Value, isPressed);
-                Win32.SendInput.SendKeystroke(_xbutton1Scancode.Value, isPressed);
+                Console.WriteLine("XB1 key [{0:X}]: {1}", Config.ScancodeForMouseXButton1.Value, isPressed);
+                Win32.SendInput.SendKeystroke(Config.ScancodeForMouseXButton1.Value, isPressed);
             }
-            if (_xbutton2Scancode.HasValue && buttonId == 4)
+            if (Config.ScancodeForMouseXButton2.HasValue && buttonId == 4)
             {
-                Console.WriteLine("XB2 key [{0:X}]: {1}", _xbutton2Scancode.Value, isPressed);
-                Win32.SendInput.SendKeystroke(_xbutton2Scancode.Value, isPressed);
+                Console.WriteLine("XB2 key [{0:X}]: {1}", Config.ScancodeForMouseXButton2.Value, isPressed);
+                Win32.SendInput.SendKeystroke(Config.ScancodeForMouseXButton2.Value, isPressed);
             }
 
             return;

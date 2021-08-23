@@ -6,194 +6,142 @@ namespace DragWheel
 {
     internal static class Config
     {
+        private static System.Collections.Generic.Dictionary<string, object> s_configDefaults =
+            new System.Collections.Generic.Dictionary<string, object> {
+                { "MouseResolution", 1200 }, //typical mouse DPI
+                { "ThrottleThrow", 125 }, //tested on Falcon BMS 4.35, F-16 and F-18, with mousewheel-sensitivity set to minimum
+                { "ThrottleMaxMIL", 83 }, //TODO: test other (non-afterburner) planes
+            };
+
+        private static System.Collections.Generic.Dictionary<string, object> s_cachedConfig =
+            new System.Collections.Generic.Dictionary<string, object>();
+
         //--------------------------------------------------------------
         // Settings
 
         //----------------------------------------
-        public static int MouseResolution
+        public static int? MouseResolution
         {
             get
-            {
-                string configValue = ConfigurationManager.AppSettings["MouseResolution"];
-
-                if (String.IsNullOrEmpty(configValue)) 
-                    return defaultMouseResolution;
-
-                return (int)_ParseUInt32(configValue);
-            }
+            { return (int?)_GetCachedValue("MouseResolution", typeof(int)); }
         }
-        static int defaultMouseResolution = 1200;//dpi
 
         //----------------------------------------
-        public static int? MouseButton
+        public static ushort? MouseButton
         {
             get
-            {
-                string configValue = ConfigurationManager.AppSettings["MouseButton"];
-
-                if (String.IsNullOrEmpty(configValue))
-                    return defaultMouseButton;
-
-                uint value = _ParseUInt32(configValue);
-                if (value > 4)
-                    throw new ConfigurationErrorsException("MouseButton must be in range [0-4]");
-
-                return (int)value;
-            }
+            { return (ushort?)_GetCachedValue("MouseButton", typeof(ushort)); }
         }
-        static int? defaultMouseButton = null;//not mouse-activated
 
         //----------------------------------------
-        public static int? JoystickButton
+        public static string JoystickButton
         {
             get
-            {
-                string configValue = ConfigurationManager.AppSettings["JoystickButton"];
-
-                if (String.IsNullOrEmpty(configValue))
-                    return defaultJoystickButton;
-
-                uint value = _ParseUInt32(configValue);
-                if (value > 31)
-                    throw new ConfigurationErrorsException("JoystickButton must be in range [0-31]");
-
-                return (int)value;
-            }
+            { return (string)_GetCachedValue("JoystickButton"); }
         }
-        static int? defaultJoystickButton = null;//not stick-activated
 
         //----------------------------------------
-        public static int ThrottleThrow
+        public static uint? ThrottleThrow
         {
             get
-            {
-                string configValue = ConfigurationManager.AppSettings["ThrottleThrow"];
-
-                if (String.IsNullOrEmpty(configValue))
-                    return defaultThrottleThrow;
-
-                uint value = _ParseUInt32(configValue);
-                if (value > 1000)
-                    throw new ConfigurationErrorsException("ThrottleThrow expected range: [0-1000]");
-
-                return (int)value;
-            }
+            { return (uint?)_GetCachedValue("ThrottleThrow", typeof(uint)); }
         }
-        static int defaultThrottleThrow = 125;//tested on Falcon BMS 4.35, with mousewheel-sensitivity set to minimum
-		// tested on F-16 and F-18 .. TODO: test other planes?
 
         //----------------------------------------
-        public static int ThrottleMaxMIL
+        public static uint? ThrottleMaxMIL
         {
             get
-            {
-                string configValue = ConfigurationManager.AppSettings["ThrottleMaxMIL"];
-
-                if (String.IsNullOrEmpty(configValue))
-                    return defaultThrottleMaxMIL;
-
-                uint value = _ParseUInt32(configValue);
-                if (value > 1000)
-                    throw new ConfigurationErrorsException("ThrottleMaxMIL expected range: [0-1000]");
-
-                return (int)value;
-            }
+            { return (uint?)_GetCachedValue("ThrottleMaxMIL", typeof(uint)); }
         }
-        static int defaultThrottleMaxMIL = 83;//tested on Falcon BMS 4.35, with mousewheel-sensitivity set to minimum
-		// tested on F-16 and F-18 .. TODO: test other planes?
 
         //----------------------------------------
         public static string IdleStopSound
         {
             get
-            {
-                return ConfigurationManager.AppSettings["IdleStopSound"];
-            }
+            { return (string)_GetCachedValue("IdleStopSound"); }
         }
 
         //----------------------------------------
         public static string BurnerDetentUpSound
         {
             get
-            {
-                return ConfigurationManager.AppSettings["BurnerDetentUpSound"];
-            }
+            { return (string)_GetCachedValue("BurnerDetentUpSound"); }
         }
 
         //----------------------------------------
         public static string BurnerDetentDownSound
         {
             get
-            {
-                return ConfigurationManager.AppSettings["BurnerDetentDownSound"];
-            }
+            { return (string)_GetCachedValue("BurnerDetentDownSound"); }
         }
 
         //----------------------------------------
         public static string MaxBurnerSound
         {
             get
-            {
-                return ConfigurationManager.AppSettings["MaxBurnerSound"];
-            }
+            { return (string)_GetCachedValue("MaxBurnerSound"); }
         }
 
         //----------------------------------------
         public static byte? ScancodeForMouseWheelButton
         {
             get
-            {
-                string configValue = ConfigurationManager.AppSettings["ScancodeForMouseWheelButton"];
-
-                if (String.IsNullOrEmpty(configValue))
-                    return null;
-
-                uint value = _ParseUInt32(configValue);
-                if (value > 255)
-                    throw new ConfigurationErrorsException("Scancode must be in range [0x00-0xFF]");
-
-                return (byte)value;
-            }
+            { return (byte?)_GetCachedValue("ScancodeForMouseWheelButton", typeof(byte)); }
         }
 
         //----------------------------------------
         public static byte? ScancodeForMouseXButton1
         {
             get
-            {
-                string configValue = ConfigurationManager.AppSettings["ScancodeForMouseXButton1"];
-
-                if (String.IsNullOrEmpty(configValue))
-                    return null;
-
-                uint value = _ParseUInt32(configValue);
-                if (value > 255)
-                    throw new ConfigurationErrorsException("Scancode must be in range [0x00-0xFF]");
-
-                return (byte)value;
-            }
+            { return (byte?)_GetCachedValue("ScancodeForMouseXButton1", typeof(byte)); }
         }
 
         //----------------------------------------
         public static byte? ScancodeForMouseXButton2
         {
             get
-            {
-                string configValue = ConfigurationManager.AppSettings["ScancodeForMouseXButton2"];
-
-                if (String.IsNullOrEmpty(configValue))
-                    return null;
-
-                uint value = _ParseUInt32(configValue);
-                if (value > 255)
-                    throw new ConfigurationErrorsException("Scancode must be in range [0x00-0xFF]");
-
-                return (byte)value;
-            }
+            { return (byte?)_GetCachedValue("ScancodeForMouseXButton2", typeof(byte)); }
         }
 
         //--------------------------------------------------------------
         // Helpers
+
+        //----------------------------------------
+        static object _GetCachedValue( string keyname, Type type=null )
+        {
+            if (s_cachedConfig.ContainsKey(keyname))
+                return s_cachedConfig[keyname];
+
+            object value = _GetValueFromConfigOrDefault(keyname, type);
+            s_cachedConfig[keyname] = value;
+
+            if (value == null) return null;
+            return value;
+        }
+
+        //----------------------------------------
+        static object _GetValueFromConfigOrDefault( string keyname, Type type=null )
+        {
+            string s = ConfigurationManager.AppSettings[keyname];
+
+            if (String.IsNullOrEmpty(s) && s_configDefaults.ContainsKey(keyname))
+                return s_configDefaults[keyname];
+
+            if (String.IsNullOrEmpty(s))
+                return null;
+
+            if (type == null || type == typeof(string))
+                return s;
+
+            // Crude parsing for parsing valuetypes.
+            object value = s;
+            if (type == typeof(byte)) value = _ParseByte(s);
+            if (type == typeof(ushort)) value = _ParseUShort(s);
+            if (type == typeof(uint)) value = _ParseUInt32(s);
+            if (type == typeof(int)) value = _ParseInt32(s);
+
+            return value;
+        }
 
         //----------------------------------------
         static uint _ParseUInt32( string s )
@@ -209,9 +157,34 @@ namespace DragWheel
             return value;
         }
 
+        //----------------------------------------
+        static ushort _ParseUShort( string s )
+        {
+            uint value = _ParseUInt32(s);
+            if (value > 0xFFFF) throw new ArgumentOutOfRangeException();
+            return (ushort)value;
+        }
+
+        //----------------------------------------
+        static byte _ParseByte( string s )
+        {
+            uint value = _ParseUInt32(s);
+            if (value > 0xFF) throw new ArgumentOutOfRangeException();
+            return (byte)value;
+        }
+
+        //----------------------------------------
+        static int _ParseInt32( string s )
+        {
+            int value = Int32.Parse(s, System.Globalization.CultureInfo.InvariantCulture);
+            return value;
+        }
+
     }
 
-    //------------------------------------------------------------------
+    //--------------------------------------------------------------
+    // Testing
+
     internal static partial class Tests
     {
         internal static void Config_NullOrEmpty( )
@@ -219,5 +192,18 @@ namespace DragWheel
             string configValue = ConfigurationManager.AppSettings["__NonExistent__"];
             Debug.Assert(String.IsNullOrEmpty(configValue));
         }
+
+        internal static void Nullable_Casting( )
+        {
+            object foo = null;
+
+            int? nullable = (int?)foo;
+            Debug.Assert(!nullable.HasValue);
+
+            foo = (object)4242;
+            nullable = (int?)foo;
+            Debug.Assert(nullable.HasValue && nullable.Value == 4242);
+        }
     }
+
 }
