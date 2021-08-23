@@ -1,4 +1,8 @@
-﻿using System;
+﻿/*
+ * Interop wrapper for decoding RawInput (WM_INPUT) messages, from mouse and joystick devices.
+ * Not implemented: keyboard
+ */
+using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 
@@ -100,7 +104,7 @@ namespace Win32
         }
 
         //----------------------------------------
-        public delegate void JoystickButtonHandler( int buttonId, bool isPressed );
+        public delegate void JoystickButtonHandler( ushort vendorId, ushort productId, ushort buttonId, bool isPressed );
 
         //----------------------------------------
         public static bool DecodeJoystickButtonEvent( IntPtr hRawInput, JoystickButtonHandler onJoystickButton )
@@ -109,12 +113,16 @@ namespace Win32
             _Interop_User32.RawInputHeaderAndRawHid riHeaderAndHid;
             IntPtr refRawInputHeaderBlock = _GetRawInputData_CachedHeaderAndBuffer(hRawInput, out riHeaderAndHid);
 
+            IntPtr hDevice = riHeaderAndHid.header.hDevice;
             uint typeEnum = riHeaderAndHid.header.dwType;
             if (typeEnum != _Interop_User32.RIM_TYPEHID)
                 return false;
 
+            // Get the vendor- and product-id, for the HID device.
+            ushort vendorId = 0xBAAD, productId = 0xF00D;
+            _GetRawInputDeviceInfo_DevicePidVid(hDevice, out vendorId, out productId);
+
             // Obtain the "preparse" data for use with subsequent HID functions.
-            IntPtr hDevice = riHeaderAndHid.header.hDevice;
             IntPtr refPreparsedHidBlock = _GetRawInputDeviceInfo_CachedPreparsedData(hDevice);
 
             // Get the max number of buttons, and allocate buffer accordingly. NOTE the confusing change 
@@ -152,7 +160,7 @@ namespace Win32
             }
 
             // Track changes in button state; adjust from 1-based to 0-based indexing, and issue callbacks.
-            _IssueCallbacksForChangedButtons(usageList, numButtons, onJoystickButton);
+            _IssueCallbacksForChangedButtons(vendorId, productId, usageList, numButtons, onJoystickButton);
             return true;
         }
 
@@ -187,7 +195,8 @@ namespace Win32
         static IntPtr s_cacheMouseBuffer = IntPtr.Zero;
 
         //----------------------------------------
-        static IntPtr _GetRawInputData_CachedHeaderAndBuffer( IntPtr hRawInput, out _Interop_User32.RawInputHeaderAndRawHid riHeaderAndHid )
+        static IntPtr _GetRawInputData_CachedHeaderAndBuffer( IntPtr hRawInput, 
+            out _Interop_User32.RawInputHeaderAndRawHid riHeaderAndHid )
         {
             riHeaderAndHid = new _Interop_User32.RawInputHeaderAndRawHid();
             riHeaderAndHid.header.dwType = UInt32.MaxValue;
@@ -235,6 +244,48 @@ namespace Win32
         static int s_sizeofHidHeaderAndReportBuffer = 0;
 
         //----------------------------------------
+        static void _GetRawInputDeviceInfo_DevicePidVid( IntPtr hDevice, 
+            out ushort vendorId, out ushort productId )
+        {
+            vendorId = productId = 0x0000;
+
+            // Alloc the necessary buffer if first time through.
+            if (s_cacheHidDeviceInfoBuffer == IntPtr.Zero)
+            {
+                s_sizeofHidDeviceInfoBuffer = _Interop_User32.RawInputDeviceInfo.MarshalSize;
+                s_cacheHidDeviceInfoBuffer = Marshal.AllocHGlobal(s_sizeofHidDeviceInfoBuffer);
+            }
+
+            // Fetch the data; verify size and failfast if not as expected.
+            System.Diagnostics.Debug.Assert(s_sizeofHidDeviceInfoBuffer != 0);
+            if (true)
+            {
+                int bufferSize = s_sizeofHidDeviceInfoBuffer;
+
+                int status = _Interop_User32.GetRawInputDeviceInfo(hDevice, _Interop_User32.RIDI_DEVICEINFO,
+                    s_cacheHidDeviceInfoBuffer, ref bufferSize
+                );
+                if (status == -1) throw new Win32Exception();
+                if (bufferSize != s_sizeofHidDeviceInfoBuffer)
+                    throw new Win32Exception("Buffer size for GetRawInputDeviceInfo changed unexpectedly.");
+            }
+
+            _Interop_User32.RawInputDeviceInfo ridDeviceInfo = Marshal.PtrToStructure<_Interop_User32.RawInputDeviceInfo>(s_cacheHidDeviceInfoBuffer);
+            System.Diagnostics.Debug.Assert(ridDeviceInfo.dwSize == _Interop_User32.RawInputDeviceInfo.MarshalSize);
+            System.Diagnostics.Debug.Assert(ridDeviceInfo.dwType == _Interop_User32.RIM_TYPEHID);
+            System.Diagnostics.Debug.Assert(ridDeviceInfo._union.hid.vendorId <= 0x0000FFFF);
+            System.Diagnostics.Debug.Assert(ridDeviceInfo._union.hid.productId <= 0x0000FFFF);
+            System.Diagnostics.Debug.Assert(ridDeviceInfo._union.hid.usagePage == 0x0001);//HID_USAGE_PAGE_GENERIC
+            System.Diagnostics.Debug.Assert(ridDeviceInfo._union.hid.usageId == 0x0004);//HID_USAGE_GENERIC_JOYSTICK
+
+            vendorId = (ushort)ridDeviceInfo._union.hid.vendorId;
+            productId = (ushort)ridDeviceInfo._union.hid.productId;
+            return;
+        }
+        static IntPtr s_cacheHidDeviceInfoBuffer = IntPtr.Zero;
+        static int s_sizeofHidDeviceInfoBuffer = 0;
+
+        //----------------------------------------
         static IntPtr _GetRawInputDeviceInfo_CachedPreparsedData( IntPtr hDevice )
         {
             // Alloc the necessary buffer if first time through. This buffer appears to be invariant size, but is
@@ -255,7 +306,7 @@ namespace Win32
             }
 
             // Fetch the data; verify size and failfast if not as expected.
-            System.Diagnostics.Debug.Assert(s_sizeofHidHeaderAndReportBuffer != 0);
+            System.Diagnostics.Debug.Assert(s_sizeofHidPreparsedBuffer != 0);
             if (true)
             {
                 int bufferSize = s_sizeofHidPreparsedBuffer;
@@ -273,7 +324,7 @@ namespace Win32
         static int s_sizeofHidPreparsedBuffer = 0;
 
         //----------------------------------------
-        static void _IssueCallbacksForChangedButtons( ushort[] usageList, uint numButtons, 
+        static void _IssueCallbacksForChangedButtons( ushort vendorId, ushort productId, ushort[] usageList, uint numButtons, 
             JoystickButtonHandler onJoystickButton )
         {
             uint buttonBitfield = 0u;
@@ -288,7 +339,7 @@ namespace Win32
                 bool bChanged = ((buttonBitfieldXorDeltas & (1u << i)) != 0u);
                 bool bPressed = ((buttonBitfield & (1u << i)) != 0u);
                 if (bChanged)
-                    onJoystickButton((int)i, bPressed);
+                    onJoystickButton(vendorId, productId, i, bPressed);
             }
             s_buttonBitfieldPrevious = buttonBitfield;
             return;
@@ -313,6 +364,7 @@ namespace Win32
             internal const uint RIM_TYPEHID = 2;
 
             internal const uint RIDI_PREPARSEDDATA = 0x20000005;
+            internal const uint RIDI_DEVICEINFO = 0x2000000B;
 
             internal const ushort MOUSE_MOVE_ABSOLUTE = 0x0001;
 
@@ -404,6 +456,8 @@ namespace Win32
             {
                 internal RawInputHeader header; //dwType==RIM_TYPEHID
                 internal RawHid hid;
+
+                internal static int MarshalSize = Marshal.SizeOf<RawInputHeaderAndRawHid>();
             }
 
             [StructLayout(LayoutKind.Sequential)]
@@ -418,6 +472,40 @@ namespace Win32
                 // which is opaque (untyped) binary data anyway, the bRawData must be referenced
                 // via unmanaged pointer-arithmetic, eg: 
                 //   pRawInput + sizeof(RawInputHeader) + sizeof(RawHid)
+            }
+
+            [StructLayout(LayoutKind.Sequential)]
+            internal struct RawInputDeviceInfo
+            {
+                internal uint dwSize;
+                internal uint dwType;
+                internal RawInputDeviceInfo_union _union;
+
+                internal static readonly int MarshalSize = Marshal.SizeOf<RawInputDeviceInfo>();
+            }
+            [StructLayout(LayoutKind.Explicit)]
+            internal struct RawInputDeviceInfo_union
+            {
+                //[FieldOffset(0)]
+                //internal RawInputDeviceInfoMouse mouse; //NB: smallest of the union, and not needed
+                [FieldOffset(0)]
+                internal RawInputDeviceInfoKeyboard keyboard;
+                [FieldOffset(0)]
+                internal RawInputDeviceInfoHid hid;
+            }
+
+            [StructLayout(LayoutKind.Sequential)]
+            internal struct RawInputDeviceInfoKeyboard
+            {
+                //NB: only implemented for size-padding (largest of the three unioned structs in RawInputDeviceInfo)
+                private uint type, subtype, keyboardMode, numFunctionKeys, numIndicators, numTotalKeys;
+            }
+
+            [StructLayout(LayoutKind.Sequential)]
+            internal struct RawInputDeviceInfoHid
+            {
+                internal uint vendorId, productId, versionId;
+                internal ushort usagePage, usageId;
             }
         }
 

@@ -8,11 +8,7 @@ namespace DragWheel
 {
     internal static class ThrottleAbsolutePosTracker
     {
-        static int s_throwRange = Config.ThrottleThrow;
-        static int s_maxMilPower = Config.ThrottleMaxMIL;
-
-        static int s_currentPosition;
-
+        static uint s_currentPosition;
         static int s_middleClickTickcount;
 
         //--------------------------------------------------------------
@@ -27,31 +23,46 @@ namespace DragWheel
         //----------------------------------------
         public static void ResetToMidpoint( )
         {
-            s_currentPosition = s_throwRange / 2 + 1;
+            s_currentPosition = 0;
             s_middleClickTickcount = 0;
+
+            if (!Config.ThrottleThrow.HasValue)
+                return;
+
+            s_currentPosition = Config.ThrottleThrow.Value / 2 + 1;
             return;
         }
 
         //----------------------------------------
-        public static int TrackDelta( int deltaThrottle )
+        public static void TrackDelta( int deltaThrottle )
         {
-            int newPosition = s_currentPosition + deltaThrottle;
-            newPosition = Math.Min(Math.Max(0, newPosition), s_throwRange);
+            if (!Config.ThrottleThrow.HasValue)
+                return;
+
+            uint maxthrow = Config.ThrottleThrow.Value;
+
+            long newPosition = (s_currentPosition + deltaThrottle);//NB: use signed arith to avoid bug comparing unsigned >= 0
+            newPosition = Math.Min(Math.Max(0, newPosition), maxthrow);
 
             if (s_currentPosition > 0 && newPosition == 0)
                 Sounds.PlayIdleStop();
 
-            if (s_currentPosition < s_throwRange && newPosition == s_throwRange)
+            if (s_currentPosition < maxthrow && newPosition >= maxthrow)
                 Sounds.PlayMaxBurner();
 
-            if (s_currentPosition <= s_maxMilPower && newPosition > s_maxMilPower)
-                Sounds.PlayBurnerDetentUp();
+            if (Config.ThrottleMaxMIL.HasValue)
+            {
+                uint maxmil = Config.ThrottleMaxMIL.Value;
 
-            if (s_currentPosition > s_maxMilPower && newPosition <= s_maxMilPower)
-                Sounds.PlayBurnerDetentDown();
+                if (s_currentPosition <= maxmil && newPosition > maxmil)
+                    Sounds.PlayBurnerDetentUp();
 
-            s_currentPosition = newPosition;
-            return s_currentPosition;
+                if (s_currentPosition > maxmil && newPosition <= maxmil)
+                    Sounds.PlayBurnerDetentDown();
+            }
+
+            s_currentPosition = (uint)newPosition;
+            return;
         }
 
         //----------------------------------------
@@ -59,7 +70,7 @@ namespace DragWheel
         {
             if (isPressed)
                 s_middleClickTickcount = tickCount;
-            else if ((tickCount - s_middleClickTickcount) < 300) //TODO: tune this to match reality?
+            else if ((tickCount - s_middleClickTickcount) < 250) //TODO: tune this to match reality?
                 ResetToMidpoint();
             return;
         }
