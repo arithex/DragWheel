@@ -49,6 +49,8 @@ This is still just a crude prototype -- but I'd like to get feedback and hear id
 
 #### *Review related settings in `falcon bms.cfg` file:*
 
+- (*required*) Disable the analog idle-cutoff detent: 
+  `set g_bUseAnalogIdleCutoff 0`
 - (recommended) Disable wheel-knobs to avoid grabbing and spinning random knobs by accident: 
   `set g_bMouseWheelKnobs 0`
 - (recommended) Disable clickable-hotspot anchoring, to clear the way for smooth uniform, mouse dragging: 
