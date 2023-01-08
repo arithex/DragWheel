@@ -532,7 +532,7 @@ namespace Win32
                 [In, Out] ref uint usageLength,
                 IntPtr pPreparsedData,
                 IntPtr refHidReportBuffer,
-                ulong reportLength
+                uint reportLength
             );
          }
 
